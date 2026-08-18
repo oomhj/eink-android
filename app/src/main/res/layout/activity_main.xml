@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- 传输方式选择 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="传输方式" />
+
+            <RadioGroup
+                android:id="@+id/radioTransport"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/radioBle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="蓝牙" />
+
+                <RadioButton
+                    android:id="@+id/radioWifi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Wi-Fi" />
+            </RadioGroup>
+        </LinearLayout>
+
+        <!-- 设备 IP（仅 Wi-Fi 方式显示） -->
+        <LinearLayout
+            android:id="@+id/ipRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="设备 IP" />
+
+            <EditText
+                android:id="@+id/etIp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:hint="192.168.4.1"
+                android:inputType="text"
+                android:maxLines="1"
+                android:text="192.168.4.1" />
+        </LinearLayout>
+
+        <!-- 状态栏 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="未连接"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnConnect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="扫描/连接" />
+        </LinearLayout>
+
+        <!-- 左：裁剪区域  右：1bpp 预览（并排紧凑布局） -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <com.t5epaper.app.CropView
+                android:id="@+id/cropView"
+                android:layout_width="0dp"
+                android:layout_height="250dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:background="@android:color/darker_gray" />
+
+            <ImageView
+                android:id="@+id/imagePreview"
+                android:layout_width="0dp"
+                android:layout_height="250dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:background="@android:color/darker_gray"
+                android:contentDescription="预览"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="左：原图选区域（双指缩放/拖动）  右：黑白效果"
+            android:textColor="#888888"
+            android:textSize="12sp" />
+
+        <!-- 调节区 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="亮度" />
+                <SeekBar
+                    android:id="@+id/seekBrightness"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="200" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="对比度" />
+                <SeekBar
+                    android:id="@+id/seekContrast"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="200" />
+            </LinearLayout>
+
+            <RadioGroup
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="4dp">
+                <RadioButton
+                    android:id="@+id/radioDither"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="抖动（照片）" />
+                <RadioButton
+                    android:id="@+id/radioThreshold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="阈值（线稿）" />
+            </RadioGroup>
+
+            <!-- 滤镜 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="滤镜" />
+
+                <RadioGroup
+                    android:id="@+id/radioFilter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/radioFilterNormal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="原图" />
+
+                    <RadioButton
+                        android:id="@+id/radioFilterInvert"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="反色" />
+                </RadioGroup>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 操作按钮 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnPick"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="选择图片" />
+
+            <Button
+                android:id="@+id/btnSend"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:enabled="false"
+                android:text="发送到墨水屏" />
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:max="100"
+            android:progress="0" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="提示：蓝牙方式连接设备 T5-Epaper。Wi-Fi 方式需手机已连到设备所在网络：设备开相册 AP（长按 BOOT0 约 3 秒）时连上 album、IP 填 192.168.4.1；设备在局域网时填它的局域网 IP。连接只看 GET /ping 是否返回 pong。上传成功后设备保持唤醒可继续发送；点「断开设备」会发送结束接口（/done）让设备深睡。"
+            android:textColor="#888888"
+            android:textSize="12sp" />
+    </LinearLayout>
+</ScrollView>
