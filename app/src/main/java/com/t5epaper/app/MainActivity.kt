@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -22,7 +23,8 @@ class MainActivity : AppCompatActivity(), BleManager.Listener, WifiManager.Liste
     private lateinit var ble: BleManager
     private lateinit var wifi: WifiManager
 
-    private var originalBitmap: Bitmap? = null
+    private var originalBitmap: Bitmap? = null   // 原始加载图（未旋转）
+    private var srcBitmap: Bitmap? = null        // 当前源图（已按旋转角处理，0° 时与 originalBitmap 相同）
     private var currentImageData: ByteArray? = null
 
     /** 当前传输方式是否为 Wi-Fi（蓝牙 / Wi-Fi 二选一） */
@@ -39,6 +41,9 @@ class MainActivity : AppCompatActivity(), BleManager.Listener, WifiManager.Liste
     private val filter get() =
         if (binding.radioFilterInvert.isChecked) ImageProcessor.Filter.INVERT
         else ImageProcessor.Filter.NORMAL
+
+    /** 相对原图累计逆时针旋转角度（0/90/180/270），点一次旋转按钮 +90 */
+    private var rotationDeg = 0
 
     /** 当前方式需要的运行时权限：Wi-Fi 仅探测接口，无需运行时权限；蓝牙按系统版本 */
     private val requiredPermissions: Array<String> get() {
@@ -67,10 +72,11 @@ class MainActivity : AppCompatActivity(), BleManager.Listener, WifiManager.Liste
         val bmp = loadSampledBitmap(uri)
         if (bmp != null) {
             originalBitmap = bmp
-            binding.cropView.setSourceBitmap(bmp)
-            updatePreview()
+            rotationDeg = 0
+            binding.btnRotate.isEnabled = true
+            applyRotation()
             updateSendButton()
-            toast("图片已加载，可缩放/拖动选择区域")
+            toast("图片已加载，可旋转/缩放/拖动选择区域")
         } else {
             toast("图片加载失败")
         }
@@ -93,6 +99,7 @@ class MainActivity : AppCompatActivity(), BleManager.Listener, WifiManager.Liste
         binding.seekContrast.progress = 100            // 对比度 100
         binding.radioDither.isChecked = true
         binding.radioBle.isChecked = true              // 默认蓝牙方式
+        binding.btnRotate.isEnabled = false             // 未选图时置灰，选图后启用
 
         binding.btnPick.setOnClickListener {
             pickImage.launch(
@@ -105,6 +112,10 @@ class MainActivity : AppCompatActivity(), BleManager.Listener, WifiManager.Liste
         binding.radioThreshold.setOnCheckedChangeListener { _, _ -> updatePreview() }
         binding.radioFilterNormal.setOnCheckedChangeListener { _, _ -> updatePreview() }
         binding.radioFilterInvert.setOnCheckedChangeListener { _, _ -> updatePreview() }
+        binding.btnRotate.setOnClickListener {
+            rotationDeg = (rotationDeg + 90) % 360      // 每次逆时针转 90°
+            applyRotation()
+        }
 
         // 传输方式切换：断开另一种方式后统一刷新状态
         binding.radioBle.setOnCheckedChangeListener { _, checked -> if (checked) onTransportChanged() }
@@ -200,8 +211,22 @@ class MainActivity : AppCompatActivity(), BleManager.Listener, WifiManager.Liste
         }
     }
 
+    /** 按累计角度旋转源图并重设 CropView 源图（裁剪框回到初始 cover 状态），随后重跑预览 */
+    private fun applyRotation() {
+        val orig = originalBitmap ?: return
+        srcBitmap = if (rotationDeg == 0) orig else rotateBitmap(orig, rotationDeg)
+        binding.cropView.setSourceBitmap(srcBitmap!!)
+        updatePreview()
+    }
+
+    /** 逆时针旋转 degrees 度（Android 坐标下正角为顺时针，故取负角） */
+    private fun rotateBitmap(src: Bitmap, degrees: Int): Bitmap {
+        val m = Matrix().apply { postRotate(-degrees.toFloat()) }
+        return Bitmap.createBitmap(src, 0, 0, src.width, src.height, m, true)
+    }
+
     private fun updatePreview() {
-        val src = originalBitmap ?: return
+        val src = srcBitmap ?: return
         val crop = binding.cropView.getCropRect() ?: return
         val data = ImageProcessor.process(src, crop, brightness, contrast, mode, filter)
         currentImageData = data
